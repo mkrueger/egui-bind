@@ -1,7 +1,9 @@
 #![doc = include_str!("../README.md")]
 #![warn(missing_docs)]
 
-use egui::{Align2, Event, FontId, Id, Key, Margin, PointerButton, Response, Sense, Ui, Widget};
+use egui::{
+    Align2, Event, FontId, Id, Key, Margin, PointerButton, Popup, Response, Sense, Ui, Widget,
+};
 use std::hash::Hash;
 
 mod target;
@@ -107,11 +109,11 @@ pub fn show_bind_popup(
     let popup_id = Id::new(popup_id_source);
 
     if widget_response.secondary_clicked() {
-        ui.memory_mut(|mem| mem.toggle_popup(popup_id))
+        Popup::toggle_id(ui.ctx(), popup_id);
     }
 
     let mut should_close = false;
-    let was_opened = ui.memory_mut(|mem| mem.is_popup_open(popup_id));
+    let was_opened = Popup::is_id_open(ui.ctx(), popup_id);
 
     let mut styles = ui.ctx().style().as_ref().clone();
     let saved_margin = styles.spacing.window_margin;
@@ -128,7 +130,7 @@ pub fn show_bind_popup(
             let r = ui.add(Bind::new(popup_id.with("_bind"), bind));
 
             if r.changed() || ui.input(|i| i.key_down(Key::Escape)) {
-                ui.memory_mut(|mem| mem.close_popup());
+                Popup::close_id(ui.ctx(), popup_id);
                 should_close = true;
             }
 
@@ -140,7 +142,7 @@ pub fn show_bind_popup(
     ui.ctx().set_style(styles);
 
     if !should_close && was_opened {
-        ui.memory_mut(|mem| mem.open_popup(popup_id));
+        Popup::open_id(ui.ctx(), popup_id);
     }
 
     out.unwrap_or(false)
